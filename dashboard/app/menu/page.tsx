@@ -423,8 +423,8 @@ function FormModal({ title, formData, setFormData, categories, onSubmit, onClose
                             <label className="block text-sm font-bold text-gray-700 mb-2">Price (৳)</label>
                             <input
                                 type="number"
-                                value={formData.price}
-                                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                                value={formData.price || ''}
+                                onChange={(e) => setFormData({ ...formData, price: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
                                 className="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                                 required
                                 min="0"

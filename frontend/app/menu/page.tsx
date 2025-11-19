@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { getMenu, MenuCategory } from "@/lib/api";
 import MenuCard from "@/components/MenuCard";
-import { Loader2, UtensilsCrossed, ShoppingBag } from "lucide-react";
+import { Loader2, ShoppingBag } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCartStore } from "@/lib/store";
 import Link from "next/link";
@@ -72,47 +72,63 @@ export default function MenuPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50/50 pb-32">
+        <div className="min-h-screen bg-gradient-to-b from-orange-50/30 to-white pb-32">
             {/* Hero Header */}
-            <div className="bg-white pt-8 pb-6 px-6 shadow-sm mb-0 sticky top-0 z-40">
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex justify-between items-center mb-4"
-                >
-                    <div>
-                        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Kacchi King 👑</h1>
-                        <p className="text-gray-500 text-sm mt-1 font-medium">Authentic flavors, delivered.</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <Link href="/cart" className="relative bg-gray-100 p-3 rounded-full hover:bg-gray-200 transition-colors">
-                            <ShoppingBag className="text-gray-900" size={24} />
-                            {itemCount > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">
-                                    {itemCount}
-                                </span>
-                            )}
-                        </Link>
-                        <div className="bg-orange-100 p-3 rounded-full">
-                            <UtensilsCrossed className="text-orange-600" size={24} />
+            <div className="glass sticky top-0 z-40 border-b border-white/50 shadow-lg">
+                <div className="pt-8 pb-6 px-6">
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex justify-between items-center mb-6"
+                    >
+                        <div>
+                            <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+                                <span className="bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">
+                                    Kacchi King
+                                </span> 👑
+                            </h1>
+                            <p className="text-gray-600 text-sm mt-1 font-semibold">Authentic flavors, delivered fresh.</p>
                         </div>
-                    </div>
-                </motion.div>
+                        <div className="flex items-center gap-3">
+                            <Link
+                                href="/cart"
+                                className="relative bg-gradient-to-br from-orange-500 to-orange-600 p-3.5 rounded-2xl hover:shadow-lg hover:scale-105 transition-all active:scale-95 shadow-md"
+                            >
+                                <ShoppingBag className="text-white" size={22} strokeWidth={2.5} />
+                                {itemCount > 0 && (
+                                    <motion.span
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        className="absolute -top-2 -right-2 bg-white text-orange-600 text-xs font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-orange-600 shadow-lg"
+                                    >
+                                        {itemCount}
+                                    </motion.span>
+                                )}
+                            </Link>
+                        </div>
+                    </motion.div>
 
-                {/* Category Tabs */}
-                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
-                    {categories.map((category) => (
-                        <button
-                            key={category.id}
-                            onClick={() => scrollToCategory(category.id)}
-                            className={`px-6 py-2.5 rounded-full whitespace-nowrap text-sm font-bold transition-all duration-300 ${activeCategory === category.id
-                                    ? "bg-gray-900 text-white shadow-lg shadow-gray-900/20 scale-105"
-                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                }`}
-                        >
-                            {category.name}
-                        </button>
-                    ))}
+                    {/* Category Tabs */}
+                    <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
+                        {categories.map((category) => (
+                            <button
+                                key={category.id}
+                                onClick={() => scrollToCategory(category.id)}
+                                className={`relative px-6 py-3 rounded-2xl whitespace-nowrap text-sm font-bold transition-all duration-300 ${activeCategory === category.id
+                                    ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 scale-105"
+                                    : "bg-white/80 text-gray-700 hover:bg-white hover:shadow-md"
+                                    }`}
+                            >
+                                {category.name}
+                                {activeCategory === category.id && (
+                                    <motion.div
+                                        layoutId="activeTab"
+                                        className="absolute inset-0 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl -z-10"
+                                    />
+                                )}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 

@@ -5,18 +5,25 @@ import { ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 export default function CartButton() {
     const [mounted, setMounted] = useState(false);
+    const pathname = usePathname();
     const itemCount = useCartStore((state) => state.itemCount());
     const total = useCartStore((state) => state.total());
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // This is intentional for client-side hydration
+        // eslint-disable-next-line
         setMounted(true);
     }, []);
 
     if (!mounted) return null;
+
+    // Hide cart button on cart and checkout pages
+    const hideOnPages = ['/cart', '/checkout', '/confirmation'];
+    if (hideOnPages.includes(pathname)) return null;
 
     return (
         <AnimatePresence>

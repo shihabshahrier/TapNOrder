@@ -53,7 +53,7 @@ export default function CartPage() {
     }
 
     return (
-        <div className="min-h-screen bg-background pb-48">
+        <div className="min-h-screen bg-background pb-32">
             <div className="p-6 max-w-md mx-auto">
                 <motion.h1
                     initial={{ x: -20, opacity: 0 }}

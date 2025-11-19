@@ -33,16 +33,13 @@ export default function MenuManagementPage() {
         is_available: true,
     });
     const [submitting, setSubmitting] = useState(false);
-    const { isAuthenticated } = useAuthStore();
+    const [mounted, setMounted] = useState(false);
+    const { isAuthenticated, logout } = useAuthStore();
     const router = useRouter();
 
     useEffect(() => {
-        if (!isAuthenticated()) {
-            router.push("/");
-            return;
-        }
-        fetchMenu();
-    }, [isAuthenticated, router]);
+        setMounted(true);
+    }, []);
 
     const fetchMenu = async () => {
         setLoading(true);
@@ -51,10 +48,29 @@ export default function MenuManagementPage() {
             setCategories(data);
         } catch (error) {
             console.error("Failed to fetch menu:", error);
+            // If 401, redirect to login
+            if (error && typeof error === 'object' && 'response' in error) {
+                const axiosError = error as { response?: { status?: number } };
+                if (axiosError.response?.status === 401) {
+                    logout();
+                    router.push("/");
+                }
+            }
         } finally {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (!mounted) return;
+
+        if (!isAuthenticated()) {
+            router.push("/");
+            return;
+        }
+        fetchMenu();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mounted, isAuthenticated, router]);
 
     const toggleAvailability = async (itemId: string, currentStatus: boolean) => {
         try {
@@ -141,6 +157,15 @@ export default function MenuManagementPage() {
             alert("Failed to delete menu item");
         }
     };
+
+    // Prevent hydration mismatch by not rendering until mounted
+    if (!mounted) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="animate-spin text-blue-500" size={32} />
+            </div>
+        );
+    }
 
     if (!isAuthenticated()) return null;
 

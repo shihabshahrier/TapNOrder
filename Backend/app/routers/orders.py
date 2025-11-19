@@ -11,6 +11,8 @@ from ..schemas.order import (
     OrderListResponse
 )
 from ..services.order_service import order_service
+from ..services.session_service import session_service
+from ..middleware.auth import verify_admin_token
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -20,8 +22,17 @@ async def create_order(
     order_data: OrderCreate,
     db: Session = Depends(get_db)
 ):
-    """Create a new order"""
+    """Create a new order (public endpoint with session validation)"""
     try:
+        # Validate session if provided
+        if hasattr(order_data, 'session_id') and order_data.session_id:
+            is_valid, error_message = session_service.validate_session(db, order_data.session_id)
+            if not is_valid:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail=error_message
+                )
+        
         order = await order_service.create_order(db, order_data)
         return order
     except ValueError as e:
@@ -56,9 +67,10 @@ async def get_order(
 async def get_orders(
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin: dict = Depends(verify_admin_token)
 ):
-    """Get list of all orders for dashboard"""
+    """Get list of all orders for dashboard (admin only)"""
     orders = order_service.get_orders(db, skip=skip, limit=limit)
     return OrderListResponse(
         orders=orders,
@@ -70,9 +82,10 @@ async def get_orders(
 async def update_order_status(
     order_id: uuid.UUID,
     status_data: OrderStatusUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    admin: dict = Depends(verify_admin_token)
 ):
-    """Update order status (triggers WhatsApp notification)"""
+    """Update order status (admin only, triggers WhatsApp notification)"""
     try:
         order = await order_service.update_order_status(
             db,

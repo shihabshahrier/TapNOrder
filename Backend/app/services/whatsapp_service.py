@@ -2,13 +2,11 @@ import httpx
 from typing import Optional
 from ..config import settings
 from ..utils.whatsapp_formatter import (
-    format_welcome_message,
     format_order_confirmation,
     format_status_update
 )
 from ..models.order import OrderStatus
 import logging
-from .auth_service import auth_service
 
 logger = logging.getLogger(__name__)
 
@@ -65,28 +63,78 @@ class WhatsAppService:
         }
         
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                logger.info(f"Sending WhatsApp message to {formatted_to}")
+                logger.debug(f"Payload: {payload}")
                 response = await client.post(url, json=payload, headers=headers)
                 response.raise_for_status()
-                logger.info(f"Message sent to {formatted_to}: {message[:50]}...")
+                logger.info(f"Message sent successfully to {formatted_to}: {message[:50]}...")
+                logger.debug(f"Response: {response.text}")
                 return True
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error sending WhatsApp message to {formatted_to}: {e.response.status_code}")
+            logger.error(f"Response body: {e.response.text}")
+            return False
+        except httpx.TimeoutException as e:
+            logger.error(f"Timeout sending WhatsApp message to {formatted_to}: {str(e)}")
+            return False
         except Exception as e:
             logger.error(f"Failed to send WhatsApp message to {formatted_to}: {str(e)}")
-            # Log the response body if available for debugging
-            if 'response' in locals() and hasattr(response, 'text'):
-                logger.error(f"Response body: {response.text}")
+            logger.error(f"Exception type: {type(e).__name__}")
             return False
     
+    async def send_interactive_cta_button(self, to: str, body_text: str, button_text: str, url: str) -> bool:
+        """Send an interactive CTA URL button message via WhatsApp Cloud API"""
+        base_url = self.api_url.rstrip('/')
+        endpoint = f"{base_url}/{self.phone_number_id}/messages"
+        
+        formatted_to = self._format_phone_number(to)
+        
+        headers = {
+            "Authorization": f"Bearer {self.access_token}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": formatted_to,
+            "type": "interactive",
+            "interactive": {
+                "type": "cta_url",
+                "body": {
+                    "text": body_text
+                },
+                "action": {
+                    "name": "cta_url",
+                    "parameters": {
+                        "display_text": button_text,
+                        "url": url
+                    }
+                }
+            }
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(endpoint, json=payload, headers=headers)
+                response.raise_for_status()
+                logger.info(f"Interactive CTA button sent to {formatted_to}")
+                return True
+        except Exception as e:
+            logger.error(f"Failed to send interactive CTA button to {formatted_to}: {str(e)}")
+            if 'response' in locals() and hasattr(response, 'text'):
+                logger.error(f"Response body: {response.text}")
+            # Fallback to text message with URL
+            return await self.send_message(to, f"{body_text}\n\n{url}")
+    
     async def send_welcome_message(self, to: str) -> bool:
-        """Send welcome message with secure menu link"""
-        # Generate access token for the user
-        token = auth_service.create_access_token(data={"sub": to})
+        """Send welcome message with menu link as interactive button"""
+        body_text = f"Welcome to {self.restaurant_name}! 🍽️\n\nTap the button below to view our menu and place your order."
+        button_text = "View Menu"
         
-        # Append token to frontend URL
-        secure_url = f"{self.frontend_url}?token={token}"
-        
-        message = format_welcome_message(self.restaurant_name, secure_url)
-        return await self.send_message(to, message)
+        # Send interactive CTA button - WhatsApp will open the URL in in-app browser
+        return await self.send_interactive_cta_button(to, body_text, button_text, self.frontend_url)
     
     async def send_order_confirmation(self, to: str, order_id: str) -> bool:
         """Send order confirmation message"""

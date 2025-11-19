@@ -3,19 +3,34 @@
 import { useState } from "react";
 import { useAuthStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
-import { Lock, ArrowRight } from "lucide-react";
+import { Lock, ArrowRight, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { login } from "@/lib/api";
 
 export default function LoginPage() {
-  const [apiKey, setApiKey] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const setToken = useAuthStore((state) => state.setToken);
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (apiKey.trim()) {
-      setToken(apiKey);
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await login(username, password);
+      setToken(response.access_token);
       router.push("/orders");
+    } catch (err) {
+      const errorMessage = err instanceof Error && 'response' in err
+        ? ((err as { response?: { data?: { detail?: string } } }).response?.data?.detail || "Invalid credentials")
+        : "Invalid credentials";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,23 +80,51 @@ export default function LoginPage() {
           transition={{ delay: 0.4 }}
           className="text-gray-600 text-center mb-10 font-medium"
         >
-          Enter your secure key to manage orders
+          Enter your credentials to manage orders
         </motion.p>
 
         <form onSubmit={handleLogin} className="space-y-6">
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm font-medium"
+            >
+              {error}
+            </motion.div>
+          )}
+
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 }}
           >
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">
-              API Key
+              Username
+            </label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter username"
+              className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white/80 hover:bg-white font-medium"
+              required
+            />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">
+              Password
             </label>
             <input
               type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Enter your secure API key"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
               className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white/80 hover:bg-white font-medium"
               required
             />
@@ -90,14 +133,24 @@ export default function LoginPage() {
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            transition={{ delay: 0.7 }}
+            whileHover={{ scale: loading ? 1 : 1.02 }}
+            whileTap={{ scale: loading ? 1 : 0.98 }}
             type="submit"
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-2xl font-bold hover:from-blue-700 hover:to-purple-700 transition-all flex items-center justify-center gap-2 shadow-xl shadow-blue-500/30"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-2xl font-bold hover:from-blue-700 hover:to-purple-700 transition-all flex items-center justify-center gap-2 shadow-xl shadow-blue-500/30 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Access Dashboard
-            <ArrowRight size={22} strokeWidth={2.5} />
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin" size={22} />
+                Logging in...
+              </>
+            ) : (
+              <>
+                Access Dashboard
+                <ArrowRight size={22} strokeWidth={2.5} />
+              </>
+            )}
           </motion.button>
         </form>
 

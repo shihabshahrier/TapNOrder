@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 
-from .routers import menu_router, orders_router, whatsapp_router
+from .routers import menu_router, orders_router, whatsapp_router, admin_router, session_router, auth_router
 from .database import Base, engine
 from .config import settings
 
@@ -39,9 +39,12 @@ app.add_middleware(
 )
 
 # Register routers
+app.include_router(auth_router)
 app.include_router(menu_router)
 app.include_router(orders_router)
 app.include_router(whatsapp_router)
+app.include_router(admin_router)
+app.include_router(session_router)
 
 
 @app.get("/")

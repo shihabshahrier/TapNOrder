@@ -1,44 +1,38 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { createSession } from "@/lib/api";
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const [authorized, setAuthorized] = useState(false);
-    const [verifying, setVerifying] = useState(true);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const urlToken = searchParams.get("token");
-        const storedToken = localStorage.getItem("auth_token");
+        // Create or retrieve session
+        const initSession = async () => {
+            try {
+                const storedSessionId = localStorage.getItem("session_id");
 
-        // Use a microtask to avoid synchronous setState in effect
-        Promise.resolve().then(() => {
-            if (urlToken) {
-                // New session from WhatsApp link
-                localStorage.setItem("auth_token", urlToken);
-                setAuthorized(true);
-                setVerifying(false);
-                // Redirect to menu after showing splash
-                setTimeout(() => {
-                    router.replace("/menu");
-                }, 1500);
-            } else if (storedToken) {
-                // Existing session
-                setAuthorized(true);
-                setVerifying(false);
-            } else {
-                // No token found - show unauthorized message
-                setAuthorized(false);
-                setVerifying(false);
+                if (!storedSessionId) {
+                    // Create new session
+                    const sessionData = await createSession();
+                    localStorage.setItem("session_id", sessionData.session_id);
+                }
+
+                setLoading(false);
+            } catch (error) {
+                console.error("Failed to initialize session:", error);
+                setLoading(false);
             }
-        });
-    }, [router, searchParams]);
+        };
 
-    // Show splash screen during verification
-    if (verifying) {
+        initSession();
+    }, [router]);
+
+    // Show splash screen during loading
+    if (loading) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700">
                 {/* Animated Background Elements */}
@@ -83,7 +77,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
                         transition={{ delay: 0.6, duration: 0.6 }}
                         className="text-xl text-white/90 font-medium drop-shadow-lg"
                     >
-                        Verifying Access...
+                        Loading Menu...
                     </motion.p>
 
                     <motion.div
@@ -108,29 +102,6 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
                             />
                         ))}
                     </motion.div>
-                </motion.div>
-            </div>
-        );
-    }
-
-    // Show unauthorized message
-    if (!authorized) {
-        return (
-            <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 p-6">
-                <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="relative z-10 flex flex-col items-center text-center max-w-md"
-                >
-                    <div className="mb-8">
-                        <div className="relative bg-white p-8 rounded-full shadow-2xl">
-                            <span className="text-7xl">🔒</span>
-                        </div>
-                    </div>
-                    <h1 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">Access Required</h1>
-                    <p className="text-white/90 text-lg leading-relaxed drop-shadow">
-                        Please use the link sent to your WhatsApp to access the menu.
-                    </p>
                 </motion.div>
             </div>
         );

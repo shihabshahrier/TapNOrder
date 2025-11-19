@@ -26,6 +26,7 @@ class OrderItemResponse(BaseModel):
 
 class OrderCreate(BaseModel):
     """Schema for creating an order"""
+    session_id: str | None = None  # Optional session ID for validation
     customer_name: str = Field(..., min_length=1, max_length=255)
     customer_phone: str = Field(..., min_length=10, max_length=50)
     delivery_address: str | None = None

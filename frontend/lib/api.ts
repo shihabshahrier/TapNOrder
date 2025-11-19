@@ -32,11 +32,17 @@ export interface OrderItem {
 }
 
 export interface CreateOrderData {
+    session_id?: string;
     customer_name: string;
     customer_phone: string;
     delivery_address: string;
     order_type: 'pickup' | 'delivery';
     items: OrderItem[];
+}
+
+export interface SessionResponse {
+    session_id: string;
+    expires_in_hours: number;
 }
 
 // API functions
@@ -53,6 +59,20 @@ export const getOrder = async (id: string) => {
 export const createOrder = async (data: CreateOrderData) => {
     const response = await api.post('/orders', data);
     return response.data;
+};
+
+export const createSession = async (): Promise<SessionResponse> => {
+    const response = await api.post('/session');
+    return response.data;
+};
+
+export const validateSession = async (sessionId: string): Promise<boolean> => {
+    try {
+        await api.get(`/session/validate/${sessionId}`);
+        return true;
+    } catch {
+        return false;
+    }
 };
 
 export default api;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCartStore } from "@/lib/store";
 import { createOrder } from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -19,9 +19,20 @@ export default function CheckoutPage() {
         order_type: "delivery" as "delivery" | "pickup",
     });
 
+    // Redirect if cart is empty - must be in useEffect to avoid render-time navigation
+    useEffect(() => {
+        if (items.length === 0) {
+            router.push("/menu");
+        }
+    }, [items.length, router]);
+
+    // Show loading while redirecting
     if (items.length === 0) {
-        router.push("/menu");
-        return null;
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="animate-spin text-blue-500" size={32} />
+            </div>
+        );
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -29,7 +40,11 @@ export default function CheckoutPage() {
         setSubmitting(true);
 
         try {
+            // Get session ID from localStorage
+            const sessionId = localStorage.getItem("session_id");
+
             const orderData = {
+                session_id: sessionId || undefined,
                 ...formData,
                 // Clear address if pickup
                 delivery_address: formData.order_type === "pickup" ? "Pickup Order" : formData.delivery_address,
@@ -67,8 +82,8 @@ export default function CheckoutPage() {
                             type="button"
                             onClick={() => setFormData({ ...formData, order_type: "delivery" })}
                             className={`relative p-4 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all duration-300 ${formData.order_type === "delivery"
-                                    ? "border-blue-500 bg-blue-50 text-blue-700 shadow-lg shadow-blue-500/10"
-                                    : "border-transparent bg-white text-gray-500 hover:bg-gray-100"
+                                ? "border-blue-500 bg-blue-50 text-blue-700 shadow-lg shadow-blue-500/10"
+                                : "border-transparent bg-white text-gray-500 hover:bg-gray-100"
                                 }`}
                         >
                             <div className={`p-3 rounded-full ${formData.order_type === "delivery" ? "bg-blue-100" : "bg-gray-100"}`}>
@@ -84,8 +99,8 @@ export default function CheckoutPage() {
                             type="button"
                             onClick={() => setFormData({ ...formData, order_type: "pickup" })}
                             className={`relative p-4 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all duration-300 ${formData.order_type === "pickup"
-                                    ? "border-orange-500 bg-orange-50 text-orange-700 shadow-lg shadow-orange-500/10"
-                                    : "border-transparent bg-white text-gray-500 hover:bg-gray-100"
+                                ? "border-orange-500 bg-orange-50 text-orange-700 shadow-lg shadow-orange-500/10"
+                                : "border-transparent bg-white text-gray-500 hover:bg-gray-100"
                                 }`}
                         >
                             <div className={`p-3 rounded-full ${formData.order_type === "pickup" ? "bg-orange-100" : "bg-gray-100"}`}>

@@ -66,13 +66,22 @@ class OrderService:
         db.commit()
         db.refresh(order)
         
-        # Send order confirmation via WhatsApp
-        await whatsapp_service.send_order_confirmation(
-            order_data.customer_phone,
-            str(order.id)
-        )
-        
         logger.info(f"Order created: {order.id} for {order.customer_name}")
+        
+        # Send order confirmation via WhatsApp
+        try:
+            logger.info(f"Attempting to send WhatsApp confirmation to {order_data.customer_phone}")
+            success = await whatsapp_service.send_order_confirmation(
+                order_data.customer_phone,
+                str(order.id)
+            )
+            if success:
+                logger.info(f"WhatsApp confirmation sent successfully to {order_data.customer_phone}")
+            else:
+                logger.error(f"Failed to send WhatsApp confirmation to {order_data.customer_phone}")
+        except Exception as e:
+            logger.error(f"Exception while sending WhatsApp confirmation: {str(e)}")
+        
         return order
     
     @staticmethod

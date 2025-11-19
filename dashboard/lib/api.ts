@@ -14,11 +14,6 @@ api.interceptors.request.use((config) => {
     const token = useAuthStore.getState().token;
     if (token) {
         config.headers['Authorization'] = `Bearer ${token}`;
-        // For prototype, we might just use a simple API key header if backend expects that
-        // But let's assume we send it as a header. 
-        // The backend spec mentioned "Simple API key header for dashboard".
-        // So let's add 'x-api-key': token
-        config.headers['x-api-key'] = token;
     }
     return config;
 });
@@ -77,17 +72,22 @@ export const getMenu = async () => {
 };
 
 export const updateMenuItem = async (itemId: string, data: Partial<MenuItem>) => {
-    const response = await api.patch(`/menu/${itemId}`, data);
+    const response = await api.patch(`/admin/menu/${itemId}`, data);
     return response.data;
 };
 
 export const createMenuItem = async (data: Omit<MenuItem, 'id'>) => {
-    const response = await api.post('/menu', data);
+    const response = await api.post('/admin/menu', data);
     return response.data;
 };
 
 export const deleteMenuItem = async (itemId: string) => {
-    const response = await api.delete(`/menu/${itemId}`);
+    const response = await api.delete(`/admin/menu/${itemId}`);
+    return response.data;
+};
+
+export const login = async (username: string, password: string) => {
+    const response = await api.post('/auth/login', { username, password });
     return response.data;
 };
 

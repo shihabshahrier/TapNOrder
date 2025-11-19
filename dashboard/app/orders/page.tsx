@@ -13,20 +13,13 @@ import RevenueChart from "@/components/RevenueChart";
 export default function OrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
+    const [mounted, setMounted] = useState(false);
     const { isAuthenticated, logout } = useAuthStore();
     const router = useRouter();
 
     useEffect(() => {
-        if (!isAuthenticated()) {
-            router.push("/");
-            return;
-        }
-        fetchOrders();
-
-        // Auto-refresh every 30 seconds
-        const interval = setInterval(fetchOrders, 30000);
-        return () => clearInterval(interval);
-    }, [isAuthenticated, router]);
+        setMounted(true);
+    }, []);
 
     const fetchOrders = async () => {
         setLoading(true);
@@ -39,15 +32,47 @@ export default function OrdersPage() {
             setOrders(sorted);
         } catch (error) {
             console.error("Failed to fetch orders:", error);
+            // If 401, redirect to login
+            if (error && typeof error === 'object' && 'response' in error) {
+                const axiosError = error as { response?: { status?: number } };
+                if (axiosError.response?.status === 401) {
+                    logout();
+                    router.push("/");
+                }
+            }
         } finally {
             setLoading(false);
         }
     };
 
+    useEffect(() => {
+        if (!mounted) return;
+
+        if (!isAuthenticated()) {
+            router.push("/");
+            return;
+        }
+        fetchOrders();
+
+        // Auto-refresh every 30 seconds
+        const interval = setInterval(fetchOrders, 30000);
+        return () => clearInterval(interval);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mounted, isAuthenticated, router]);
+
     const handleLogout = () => {
         logout();
         router.push("/");
     };
+
+    // Prevent hydration mismatch by not rendering until mounted
+    if (!mounted) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="animate-spin text-blue-500" size={32} />
+            </div>
+        );
+    }
 
     if (!isAuthenticated()) return null;
 

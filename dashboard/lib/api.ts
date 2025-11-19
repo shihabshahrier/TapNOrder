@@ -86,4 +86,14 @@ export const createMenuItem = async (data: Omit<MenuItem, 'id'>) => {
     return response.data;
 };
 
+export const deleteMenuItem = async (itemId: string) => {
+    const response = await api.delete(`/menu/${itemId}`);
+    return response.data;
+};
+
+export const getCategories = async () => {
+    const response = await api.get('/menu/categories/all');
+    return response.data;
+};
+
 export default api;

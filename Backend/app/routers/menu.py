@@ -140,3 +140,22 @@ async def get_categories_with_items(db: Session = Depends(get_db)):
     ).all()
     
     return categories
+
+
+@router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_menu_item(
+    item_id: uuid.UUID,
+    db: Session = Depends(get_db)
+):
+    """Delete a menu item"""
+    item = db.query(MenuItem).filter(MenuItem.id == item_id).first()
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Menu item {item_id} not found"
+        )
+    
+    db.delete(item)
+    db.commit()
+    
+    return None

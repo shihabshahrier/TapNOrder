@@ -114,16 +114,16 @@ class WhatsAppService:
             message_type = message_data.get("type")
             
             if message_type == "text":
-                text = message_data.get("text", {}).get("body", "").lower()
+                text = message_data.get("text", {}).get("body", "").lower().strip()
                 
-                # Simple command processing
-                if text in ["hi", "hello", "menu", "start"]:
+                # Only send welcome message for specific keywords
+                if text in ["hi", "hello", "menu"]:
                     await self.send_welcome_message(from_number)
                     return {"status": "processed", "action": "welcome_sent"}
                 else:
-                    # For other messages, send menu link
-                    await self.send_welcome_message(from_number)
-                    return {"status": "processed", "action": "menu_sent"}
+                    # For other messages, just acknowledge without sending anything
+                    logger.info(f"Received message from {from_number}: {text}")
+                    return {"status": "processed", "action": "message_received"}
             
             return {"status": "ignored", "reason": "unsupported_message_type"}
             

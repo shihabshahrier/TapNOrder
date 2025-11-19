@@ -46,12 +46,12 @@ export const getMenu = async (): Promise<MenuCategory[]> => {
 };
 
 export const getOrder = async (id: string) => {
-    const response = await api.get(`/order/${id}`);
+    const response = await api.get(`/orders/${id}`);
     return response.data;
 };
 
 export const createOrder = async (data: CreateOrderData) => {
-    const response = await api.post('/order', data);
+    const response = await api.post('/orders', data);
     return response.data;
 };
 

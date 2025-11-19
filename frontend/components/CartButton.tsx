@@ -26,7 +26,7 @@ export default function CartButton() {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 100, opacity: 0 }}
                     transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                    className="fixed bottom-0 left-0 right-0 p-4 z-50 bg-gradient-to-t from-background via-background/80 to-transparent pb-6"
+                    className="fixed bottom-0 left-0 right-0 p-4 z-[100] bg-gradient-to-t from-background via-background/80 to-transparent pb-6"
                 >
                     <Link
                         href="/cart"

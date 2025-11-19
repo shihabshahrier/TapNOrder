@@ -1,7 +1,7 @@
 "use client";
 
 import { useCartStore } from "@/lib/store";
-import { Minus, Plus, Trash2, ArrowRight } from "lucide-react";
+import { Minus, Plus, Trash2, ArrowRight, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,7 +18,7 @@ export default function CartPage() {
                     transition={{ type: "spring", stiffness: 260, damping: 20 }}
                     className="bg-muted p-8 rounded-full mb-6"
                 >
-                    <Trash2 size={64} className="text-muted-foreground" />
+                    <ShoppingBag size={64} className="text-muted-foreground" />
                 </motion.div>
                 <motion.h2
                     initial={{ y: 20, opacity: 0 }}
@@ -53,7 +53,7 @@ export default function CartPage() {
     }
 
     return (
-        <div className="min-h-screen bg-background pb-40">
+        <div className="min-h-screen bg-background pb-48">
             <div className="p-6 max-w-md mx-auto">
                 <motion.h1
                     initial={{ x: -20, opacity: 0 }}
@@ -132,7 +132,7 @@ export default function CartPage() {
             <motion.div
                 initial={{ y: 100 }}
                 animate={{ y: 0 }}
-                className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-md border-t border-border p-6 safe-area-bottom z-50"
+                className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-xl border-t border-border p-6 safe-area-bottom z-[60] shadow-2xl"
             >
                 <div className="max-w-md mx-auto">
                     <div className="flex justify-between items-center mb-4">

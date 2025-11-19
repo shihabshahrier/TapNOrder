@@ -1,15 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getMenu, MenuCategory } from "@/lib/api";
 import MenuCard from "@/components/MenuCard";
-import { Loader2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, UtensilsCrossed, ShoppingBag } from "lucide-react";
+import { motion } from "framer-motion";
+import { useCartStore } from "@/lib/store";
+import Link from "next/link";
 
 export default function MenuPage() {
     const [categories, setCategories] = useState<MenuCategory[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState<string>("");
+    const categoryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+    const itemCount = useCartStore((state) => state.itemCount());
 
     useEffect(() => {
         const fetchMenu = async () => {
@@ -29,6 +33,36 @@ export default function MenuPage() {
         fetchMenu();
     }, []);
 
+    // Scroll spy to update active category
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollPosition = window.scrollY + 150; // Offset for header
+
+            for (const category of categories) {
+                const element = categoryRefs.current[category.id];
+                if (element) {
+                    const { offsetTop, offsetHeight } = element;
+                    if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+                        setActiveCategory(category.id);
+                        break;
+                    }
+                }
+            }
+        };
+
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, [categories]);
+
+    const scrollToCategory = (categoryId: string) => {
+        setActiveCategory(categoryId);
+        const element = categoryRefs.current[categoryId];
+        if (element) {
+            const y = element.getBoundingClientRect().top + window.pageYOffset - 140;
+            window.scrollTo({ top: y, behavior: "smooth" });
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-background">
@@ -38,75 +72,75 @@ export default function MenuPage() {
     }
 
     return (
-        <div className="min-h-screen bg-background pb-32">
-            {/* Header */}
-            <div className="bg-white p-6 shadow-sm mb-6 sticky top-0 z-40 bg-opacity-90 backdrop-blur-md">
+        <div className="min-h-screen bg-gray-50/50 pb-32">
+            {/* Hero Header */}
+            <div className="bg-white pt-8 pb-6 px-6 shadow-sm mb-0 sticky top-0 z-40">
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex justify-between items-center"
+                    className="flex justify-between items-center mb-4"
                 >
                     <div>
-                        <h1 className="text-3xl font-bold text-foreground">Kacchi King 👑</h1>
-                        <p className="text-muted-foreground text-sm mt-1">Authentic flavors delivered to you.</p>
+                        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Kacchi King 👑</h1>
+                        <p className="text-gray-500 text-sm mt-1 font-medium">Authentic flavors, delivered.</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Link href="/cart" className="relative bg-gray-100 p-3 rounded-full hover:bg-gray-200 transition-colors">
+                            <ShoppingBag className="text-gray-900" size={24} />
+                            {itemCount > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">
+                                    {itemCount}
+                                </span>
+                            )}
+                        </Link>
+                        <div className="bg-orange-100 p-3 rounded-full">
+                            <UtensilsCrossed className="text-orange-600" size={24} />
+                        </div>
                     </div>
                 </motion.div>
-            </div>
 
-            <div className="max-w-md mx-auto px-4">
                 {/* Category Tabs */}
-                <div className="flex gap-3 overflow-x-auto pb-6 mb-2 no-scrollbar sticky top-[88px] z-30 bg-background/95 backdrop-blur-sm py-2 -mx-4 px-4">
-                    {categories.map((category, idx) => (
-                        <motion.button
+                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
+                    {categories.map((category) => (
+                        <button
                             key={category.id}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: idx * 0.05 }}
-                            onClick={() => setActiveCategory(category.id)}
-                            className={`px-5 py-2.5 rounded-full whitespace-nowrap text-sm font-semibold transition-all shadow-sm ${activeCategory === category.id
-                                ? "bg-primary text-primary-foreground shadow-primary/25 ring-2 ring-primary ring-offset-2"
-                                : "bg-white text-muted-foreground hover:bg-gray-50 border border-border"
+                            onClick={() => scrollToCategory(category.id)}
+                            className={`px-6 py-2.5 rounded-full whitespace-nowrap text-sm font-bold transition-all duration-300 ${activeCategory === category.id
+                                    ? "bg-gray-900 text-white shadow-lg shadow-gray-900/20 scale-105"
+                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                                 }`}
                         >
                             {category.name}
-                        </motion.button>
+                        </button>
                     ))}
                 </div>
+            </div>
 
+            <div className="max-w-md mx-auto px-4 pt-6">
                 {/* Menu Items */}
-                <div className="space-y-8 min-h-[50vh]">
-                    <AnimatePresence mode="wait">
-                        {categories.map((category) => (
-                            activeCategory === category.id && (
-                                <motion.div
-                                    key={category.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                    transition={{ duration: 0.3 }}
-                                >
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h2 className="text-xl font-bold text-foreground">{category.name}</h2>
-                                        <span className="text-xs text-muted-foreground font-medium bg-muted px-2 py-1 rounded-md">
-                                            {category.items.length} items
-                                        </span>
-                                    </div>
-                                    <div className="grid grid-cols-1 gap-6">
-                                        {category.items.map((item, idx) => (
-                                            <motion.div
-                                                key={item.id}
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: idx * 0.1 }}
-                                            >
-                                                <MenuCard item={item} />
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            )
-                        ))}
-                    </AnimatePresence>
+                <div className="space-y-10">
+                    {categories.map((category) => (
+                        <div
+                            key={category.id}
+                            id={category.id}
+                            ref={(el) => { categoryRefs.current[category.id] = el; }}
+                            className="scroll-mt-32"
+                        >
+                            <div className="flex items-center gap-3 mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900">{category.name}</h2>
+                                <div className="h-1 flex-grow bg-gray-100 rounded-full"></div>
+                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    {category.items.length} Items
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-6">
+                                {category.items.map((item) => (
+                                    <MenuCard key={item.id} item={item} />
+                                ))}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>

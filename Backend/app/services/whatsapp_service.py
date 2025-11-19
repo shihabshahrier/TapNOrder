@@ -24,10 +24,31 @@ class WhatsAppService:
         self.frontend_url = settings.frontend_url
         self.restaurant_name = settings.restaurant_name
     
+    def _format_phone_number(self, phone: str) -> str:
+        """Format phone number to international format (assuming BD +880)"""
+        # Remove any non-digit characters
+        clean_phone = "".join(filter(str.isdigit, phone))
+        
+        # If it starts with 01, it's likely a local BD number (e.g., 017...)
+        if clean_phone.startswith("01"):
+            return "880" + clean_phone[1:]
+        
+        # If it starts with 880, it's already formatted
+        if clean_phone.startswith("880"):
+            return clean_phone
+            
+        # If it's just the 10 digits (17...), add 880
+        if len(clean_phone) == 10 and clean_phone.startswith("1"):
+            return "880" + clean_phone
+            
+        return clean_phone
+
     async def send_message(self, to: str, message: str) -> bool:
         """Send a text message via WhatsApp Cloud API"""
         base_url = self.api_url.rstrip('/')
         url = f"{base_url}/{self.phone_number_id}/messages"
+        
+        formatted_to = self._format_phone_number(to)
         
         headers = {
             "Authorization": f"Bearer {self.access_token}",
@@ -36,7 +57,7 @@ class WhatsAppService:
         
         payload = {
             "messaging_product": "whatsapp",
-            "to": to,
+            "to": formatted_to,
             "type": "text",
             "text": {
                 "body": message
@@ -47,10 +68,13 @@ class WhatsAppService:
             async with httpx.AsyncClient() as client:
                 response = await client.post(url, json=payload, headers=headers)
                 response.raise_for_status()
-                logger.info(f"Message sent to {to}: {message[:50]}...")
+                logger.info(f"Message sent to {formatted_to}: {message[:50]}...")
                 return True
         except Exception as e:
-            logger.error(f"Failed to send WhatsApp message to {to}: {str(e)}")
+            logger.error(f"Failed to send WhatsApp message to {formatted_to}: {str(e)}")
+            # Log the response body if available for debugging
+            if 'response' in locals() and hasattr(response, 'text'):
+                logger.error(f"Response body: {response.text}")
             return False
     
     async def send_welcome_message(self, to: str) -> bool:

@@ -8,6 +8,7 @@ from ..utils.whatsapp_formatter import (
 )
 from ..models.order import OrderStatus
 import logging
+from .auth_service import auth_service
 
 logger = logging.getLogger(__name__)
 
@@ -53,8 +54,14 @@ class WhatsAppService:
             return False
     
     async def send_welcome_message(self, to: str) -> bool:
-        """Send welcome message with menu link"""
-        message = format_welcome_message(self.restaurant_name, self.frontend_url)
+        """Send welcome message with secure menu link"""
+        # Generate access token for the user
+        token = auth_service.create_access_token(data={"sub": to})
+        
+        # Append token to frontend URL
+        secure_url = f"{self.frontend_url}?token={token}"
+        
+        message = format_welcome_message(self.restaurant_name, secure_url)
         return await self.send_message(to, message)
     
     async def send_order_confirmation(self, to: str, order_id: str) -> bool:

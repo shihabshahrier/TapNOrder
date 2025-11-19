@@ -48,132 +48,143 @@ export default function CheckoutPage() {
     };
 
     return (
-        <div className="p-4 max-w-md mx-auto pb-24">
-            <div className="flex items-center gap-4 mb-6">
-                <Link href="/cart" className="p-2 hover:bg-gray-100 rounded-full">
-                    <ArrowLeft size={24} />
-                </Link>
-                <h1 className="text-2xl font-bold">Checkout</h1>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Contact Info */}
-                <div className="bg-white p-4 rounded-xl shadow-sm space-y-4">
-                    <h2 className="font-semibold text-lg">Contact Info</h2>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Full Name
-                        </label>
-                        <input
-                            type="text"
-                            required
-                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                            value={formData.customer_name}
-                            onChange={(e) =>
-                                setFormData({ ...formData, customer_name: e.target.value })
-                            }
-                            placeholder="John Doe"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Phone Number
-                        </label>
-                        <input
-                            type="tel"
-                            required
-                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                            value={formData.customer_phone}
-                            onChange={(e) =>
-                                setFormData({ ...formData, customer_phone: e.target.value })
-                            }
-                            placeholder="+1 234 567 8900"
-                        />
-                    </div>
+        <div className="min-h-screen bg-background pb-24">
+            <div className="p-6 max-w-md mx-auto">
+                <div className="flex items-center gap-4 mb-8">
+                    <Link href="/cart" className="p-2.5 hover:bg-muted rounded-full transition-colors text-foreground">
+                        <ArrowLeft size={24} strokeWidth={2.5} />
+                    </Link>
+                    <h1 className="text-2xl font-bold text-foreground">Checkout</h1>
                 </div>
 
-                {/* Order Type */}
-                <div className="bg-white p-4 rounded-xl shadow-sm space-y-4">
-                    <h2 className="font-semibold text-lg">Order Type</h2>
+                <form onSubmit={handleSubmit} className="space-y-8">
+                    {/* Contact Info */}
+                    <div className="bg-card p-6 rounded-2xl shadow-sm border border-border space-y-5">
+                        <h2 className="font-bold text-lg text-foreground flex items-center gap-2">
+                            <span className="w-1 h-6 bg-primary rounded-full"></span>
+                            Contact Info
+                        </h2>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <button
-                            type="button"
-                            onClick={() => setFormData({ ...formData, order_type: "delivery" })}
-                            className={`p-4 rounded-lg border-2 font-medium transition-all ${formData.order_type === "delivery"
-                                    ? "border-black bg-black text-white"
-                                    : "border-gray-200 hover:border-gray-300"
-                                }`}
-                        >
-                            Delivery
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setFormData({ ...formData, order_type: "pickup" })}
-                            className={`p-4 rounded-lg border-2 font-medium transition-all ${formData.order_type === "pickup"
-                                    ? "border-black bg-black text-white"
-                                    : "border-gray-200 hover:border-gray-300"
-                                }`}
-                        >
-                            Pickup
-                        </button>
-                    </div>
-
-                    {formData.order_type === "delivery" && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Delivery Address
+                            <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+                                Full Name
                             </label>
-                            <textarea
+                            <input
+                                type="text"
                                 required
-                                rows={3}
-                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none resize-none"
-                                value={formData.delivery_address}
+                                className="w-full p-3.5 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                value={formData.customer_name}
                                 onChange={(e) =>
-                                    setFormData({ ...formData, delivery_address: e.target.value })
+                                    setFormData({ ...formData, customer_name: e.target.value })
                                 }
-                                placeholder="Enter your full address"
+                                placeholder="John Doe"
                             />
                         </div>
-                    )}
-                </div>
 
-                {/* Order Summary */}
-                <div className="bg-white p-4 rounded-xl shadow-sm">
-                    <h2 className="font-semibold text-lg mb-4">Order Summary</h2>
-                    <div className="space-y-2 mb-4">
-                        {items.map((item) => (
-                            <div key={item.id} className="flex justify-between text-sm">
-                                <span className="text-gray-600">
-                                    {item.quantity}x {item.name}
-                                </span>
-                                <span>${(item.price * item.quantity).toFixed(2)}</span>
+                        <div>
+                            <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+                                Phone Number
+                            </label>
+                            <input
+                                type="tel"
+                                required
+                                className="w-full p-3.5 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                value={formData.customer_phone}
+                                onChange={(e) =>
+                                    setFormData({ ...formData, customer_phone: e.target.value })
+                                }
+                                placeholder="+1 234 567 8900"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Order Type */}
+                    <div className="bg-card p-6 rounded-2xl shadow-sm border border-border space-y-5">
+                        <h2 className="font-bold text-lg text-foreground flex items-center gap-2">
+                            <span className="w-1 h-6 bg-primary rounded-full"></span>
+                            Order Type
+                        </h2>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, order_type: "delivery" })}
+                                className={`p-4 rounded-xl border-2 font-bold transition-all ${formData.order_type === "delivery"
+                                    ? "border-primary bg-primary/5 text-primary"
+                                    : "border-border hover:border-primary/50 text-muted-foreground"
+                                    }`}
+                            >
+                                Delivery
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, order_type: "pickup" })}
+                                className={`p-4 rounded-xl border-2 font-bold transition-all ${formData.order_type === "pickup"
+                                    ? "border-primary bg-primary/5 text-primary"
+                                    : "border-border hover:border-primary/50 text-muted-foreground"
+                                    }`}
+                            >
+                                Pickup
+                            </button>
+                        </div>
+
+                        {formData.order_type === "delivery" && (
+                            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+                                    Delivery Address
+                                </label>
+                                <textarea
+                                    required
+                                    rows={3}
+                                    className="w-full p-3.5 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none transition-all"
+                                    value={formData.delivery_address}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, delivery_address: e.target.value })
+                                    }
+                                    placeholder="Enter your full address"
+                                />
                             </div>
-                        ))}
+                        )}
                     </div>
-                    <div className="border-t pt-4 flex justify-between font-bold text-lg">
-                        <span>Total</span>
-                        <span>${total().toFixed(2)}</span>
-                    </div>
-                </div>
 
-                <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full bg-black text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {submitting ? (
-                        <>
-                            <Loader2 className="animate-spin" />
-                            Placing Order...
-                        </>
-                    ) : (
-                        "Place Order"
-                    )}
-                </button>
-            </form>
+                    {/* Order Summary */}
+                    <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">
+                        <h2 className="font-bold text-lg mb-4 text-foreground flex items-center gap-2">
+                            <span className="w-1 h-6 bg-primary rounded-full"></span>
+                            Order Summary
+                        </h2>
+                        <div className="space-y-3 mb-4">
+                            {items.map((item) => (
+                                <div key={item.id} className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground font-medium">
+                                        <span className="text-foreground font-bold">{item.quantity}x</span> {item.name}
+                                    </span>
+                                    <span className="font-semibold">৳{(item.price * item.quantity).toFixed(2)}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="border-t border-border pt-4 flex justify-between items-end">
+                            <span className="text-muted-foreground font-medium">Total Amount</span>
+                            <span className="text-2xl font-bold text-primary">৳{total().toFixed(2)}</span>
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={submitting}
+                        className="w-full bg-primary text-primary-foreground py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 shadow-xl shadow-primary/25 hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {submitting ? (
+                            <>
+                                <Loader2 className="animate-spin" />
+                                Placing Order...
+                            </>
+                        ) : (
+                            "Place Order"
+                        )}
+                    </button>
+                </form>
+            </div>
         </div>
     );
 }
